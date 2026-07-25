@@ -239,6 +239,18 @@ h2.center{ max-width: 640px; margin-left:auto; margin-right:auto; }
   .split-photo .slideshow img{ animation: none; opacity: 0; }
   .split-photo .slideshow img:first-child{ opacity: 1; }
 }
+
+/* 4-photo variant (Privatisation) */
+.split-photo .slideshow-4 img{ animation: slideshow-fade-4 12s infinite; }
+.split-photo .slideshow-4 img:nth-child(1){ animation-delay: 0s; }
+.split-photo .slideshow-4 img:nth-child(2){ animation-delay: 3s; }
+.split-photo .slideshow-4 img:nth-child(3){ animation-delay: 6s; }
+.split-photo .slideshow-4 img:nth-child(4){ animation-delay: 9s; }
+
+@keyframes slideshow-fade-4{
+  0%, 22%{ opacity: 1; }
+  30%, 100%{ opacity: 0; }
+}
 .split-text h2{ font-size: clamp(1.8rem, 3vw, 2.4rem); max-width: 480px; }
 .split-text p{ max-width: 480px; }
 
