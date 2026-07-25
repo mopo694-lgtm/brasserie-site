@@ -65,7 +65,7 @@ if (galleryTrack) {
   galleryTrack.scrollLeft = 1;
   keepInLoop();
 
-  const SPEED_PX_PER_SEC = 28;
+  const SPEED_PX_PER_SEC = 45;
   let autoScroll = true;
   let isDragging = false;
   let lastTime = null;
