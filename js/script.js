@@ -33,14 +33,90 @@ if (menuFlip && menuFlipBtn) {
   });
 }
 
-// Gallery carousel arrows (index page only)
+// Gallery: continuous auto-scroll, draggable, infinite loop (index page only)
 const galleryTrack = document.getElementById('gallery-track');
-const galleryPrev = document.getElementById('gallery-prev');
-const galleryNext = document.getElementById('gallery-next');
-if (galleryTrack && galleryPrev && galleryNext) {
-  const galleryStep = () => galleryTrack.querySelector('img').getBoundingClientRect().width + 18;
-  galleryPrev.addEventListener('click', () => galleryTrack.scrollBy({ left: -galleryStep(), behavior: 'smooth' }));
-  galleryNext.addEventListener('click', () => galleryTrack.scrollBy({ left: galleryStep(), behavior: 'smooth' }));
+if (galleryTrack) {
+  // Duplicate the photo set once so the track can loop seamlessly.
+  const originalImgs = Array.from(galleryTrack.children);
+  originalImgs.forEach(img => {
+    const clone = img.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    clone.removeAttribute('alt');
+    galleryTrack.appendChild(clone);
+  });
+
+  let setWidth = 0;
+  const measureSetWidth = () => {
+    const last = originalImgs[originalImgs.length - 1];
+    setWidth = (last.offsetLeft + last.offsetWidth) - originalImgs[0].offsetLeft + 18;
+  };
+  measureSetWidth();
+  window.addEventListener('resize', measureSetWidth);
+
+  const keepInLoop = () => {
+    if (!setWidth) return;
+    const maxScroll = galleryTrack.scrollWidth - galleryTrack.clientWidth;
+    if (galleryTrack.scrollLeft <= 1) {
+      galleryTrack.scrollLeft += setWidth;
+    } else if (galleryTrack.scrollLeft >= maxScroll - 1) {
+      galleryTrack.scrollLeft -= setWidth;
+    }
+  };
+  galleryTrack.scrollLeft = 1;
+  keepInLoop();
+
+  const SPEED_PX_PER_SEC = 28;
+  let autoScroll = true;
+  let isDragging = false;
+  let lastTime = null;
+  const tick = (time) => {
+    if (lastTime === null) lastTime = time;
+    const dt = (time - lastTime) / 1000;
+    lastTime = time;
+    if (autoScroll && !isDragging) {
+      galleryTrack.scrollLeft += SPEED_PX_PER_SEC * dt;
+      keepInLoop();
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+
+  // Mouse drag-to-scroll (touch keeps native swipe scrolling)
+  let dragStartX = 0;
+  let dragStartScroll = 0;
+  galleryTrack.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return;
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartScroll = galleryTrack.scrollLeft;
+    galleryTrack.setPointerCapture(e.pointerId);
+    galleryTrack.classList.add('is-dragging');
+  });
+  galleryTrack.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    galleryTrack.scrollLeft = dragStartScroll - (e.clientX - dragStartX);
+    keepInLoop();
+  });
+  const endDrag = () => {
+    isDragging = false;
+    galleryTrack.classList.remove('is-dragging');
+  };
+  galleryTrack.addEventListener('pointerup', endDrag);
+  galleryTrack.addEventListener('pointercancel', endDrag);
+  galleryTrack.addEventListener('pointerleave', endDrag);
+
+  // Pause auto-scroll during touch swipes so it doesn't fight the user
+  let touchResume;
+  galleryTrack.addEventListener('touchstart', () => {
+    autoScroll = false;
+    clearTimeout(touchResume);
+  }, { passive: true });
+  galleryTrack.addEventListener('touchend', () => {
+    touchResume = setTimeout(() => { autoScroll = true; }, 300);
+  });
+  galleryTrack.addEventListener('scroll', () => {
+    if (!isDragging) keepInLoop();
+  }, { passive: true });
 }
 
 // Footer year
