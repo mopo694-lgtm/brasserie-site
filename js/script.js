@@ -68,18 +68,16 @@ if (galleryTrack) {
   const SPEED_PX_PER_SEC = 45;
   let autoScroll = true;
   let isDragging = false;
-  let lastTime = null;
-  const tick = (time) => {
-    if (lastTime === null) lastTime = time;
-    const dt = (time - lastTime) / 1000;
-    lastTime = time;
+  let lastTime = performance.now();
+  setInterval(() => {
+    const now = performance.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
     if (autoScroll && !isDragging) {
       galleryTrack.scrollLeft += SPEED_PX_PER_SEC * dt;
       keepInLoop();
     }
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
+  }, 30);
 
   // Mouse drag-to-scroll (touch keeps native swipe scrolling)
   let dragStartX = 0;
